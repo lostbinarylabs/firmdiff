@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -22,11 +23,38 @@ func NewRootCmd() *cobra.Command {
 		SilenceErrors: true,
 	}
 
+	cmd.AddGroup(
+		&cobra.Group{
+			ID:    "core",
+			Title: "Core Commands",
+		},
+		&cobra.Group{
+			ID:    "utility",
+			Title: "Utility Commands",
+		},
+	)
+
 	cmd.AddCommand(NewRunCmd())
 	cmd.AddCommand(NewDoctorCmd())
 	cmd.AddCommand(NewVersionCmd())
 
+	// Hide cobra's auto-generated completion command
+	cmd.CompletionOptions.HiddenDefaultCmd = true
+	cmd.SetHelpCommand(&cobra.Command{Hidden: true})
+
 	return cmd
+}
+
+var ErrThreshold = errors.New("threshold exceeded")
+
+func ExitCode(err error) int {
+	if err == nil {
+		return 0
+	}
+	if errors.Is(err, ErrThreshold) {
+		return 2
+	}
+	return 1
 }
 
 func Execute() error {

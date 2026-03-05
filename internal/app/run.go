@@ -40,8 +40,9 @@ func NewRunCmd() *cobra.Command {
 	var f runFlags
 
 	cmd := &cobra.Command{
-		Use:   "run",
-		Short: "Build variant A, build variant B, compare them, and print results",
+		Use:     "run",
+		Short:   "Build variant A, build variant B, compare them, and print results",
+		GroupID: "core",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(f)
 		},
@@ -86,7 +87,8 @@ func run(f runFlags) error {
 		return err
 	}
 
-	fmt.Printf("firmdiff: run %q\n", f.Name)
+	fmt.Printf("firmdiff run: %s\n", f.Name)
+	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 	fmt.Printf("  src: %s\n", f.Src)
 	fmt.Printf("  out: %s\n\n", base)
 
@@ -100,30 +102,79 @@ func run(f runFlags) error {
 		return err
 	}
 
+	printSection("BUILD")
+
+	logLine(Info, "A built successfully")
+	logLine(Info, "B built successfully")
+
 	artifactA := strings.ReplaceAll(f.ArtifactTemplate, "{out}", outA)
 	artifactB := strings.ReplaceAll(f.ArtifactTemplate, "{out}", outB)
 
-	fmt.Println("Artifacts:")
-	fmt.Printf("  A: %s\n", artifactA)
-	fmt.Printf("  B: %s\n", artifactB)
+	printSection("ARTIFACTS")
 
-	// Format check (useful immediately)
-	fmt.Println()
-	fmt.Println("Binary format:")
+	logLine(Info, "A: %s", artifactA)
+	logLine(Info, "B: %s", artifactB)
+
+	printSection("BINARY FORMAT")
+
 	if err := printFormat(artifactA, "A"); err != nil {
+		logLine(Fail, "%v", err)
 		return err
 	}
+
 	if err := printFormat(artifactB, "B"); err != nil {
+		logLine(Fail, "%v", err)
 		return err
 	}
 
-	// TODO:
-	// - parse ELF sizes/symbols (debug/elf)
-	// - compare & report
-	// - implement thresholds for flash/ram deltas
+	// Analyze ELF A & B
+	logLine(Info, "Analyzing ELF artifacts (debug/elf)")
+	aRes, err := AnalyzeELF(artifactA, 200) // grab more to improve diff quality
+	if err != nil {
+		return fmt.Errorf("analyze A: %w", err)
+	}
+	bRes, err := AnalyzeELF(artifactB, 200)
+	if err != nil {
+		return fmt.Errorf("analyze B: %w", err)
+	}
 
-	fmt.Println()
-	fmt.Println("Next: wire in ELF analysis + diff report.")
+	// Summary table
+	renderSummaryTable(
+		f.Name,
+		"A", "B",
+		aRes.Size.Flash, bRes.Size.Flash,
+		aRes.Size.Ram, bRes.Size.Ram,
+	)
+
+	// Threshold gates
+	dFlash := abs64(bRes.Size.Flash - aRes.Size.Flash)
+	dRam := abs64(bRes.Size.Ram - aRes.Size.Ram)
+
+	if f.MaxFlashDelta > 0 && dFlash > int64(f.MaxFlashDelta) {
+		logLine(Fail, "FLASH delta %d exceeds max %d", dFlash, f.MaxFlashDelta)
+		return fmt.Errorf("%w: flash delta %d > %d", ErrThreshold, dFlash, f.MaxFlashDelta)
+	}
+	if f.MaxRamDelta > 0 && dRam > int64(f.MaxRamDelta) {
+		logLine(Fail, "RAM delta %d exceeds max %d", dRam, f.MaxRamDelta)
+		return fmt.Errorf("%w: ram delta %d > %d", ErrThreshold, dRam, f.MaxRamDelta)
+	}
+
+	// Symbol deltas (best-effort; may be empty on stripped binaries)
+	grown, shrunk := DiffSymbols(aRes.TopSyms, bRes.TopSyms, 12)
+
+	if len(grown) == 0 && len(shrunk) == 0 {
+		logLine(Warn, "No symbol deltas found (binary may be stripped, or symbols unavailable).")
+		logLine(Info, "Tip: build with -g or CMAKE_BUILD_TYPE=RelWithDebInfo to improve symbol reporting.")
+	} else {
+		if len(grown) > 0 {
+			renderSymbolDeltaTable("Top symbol growth", grown)
+		}
+		if len(shrunk) > 0 {
+			renderSymbolDeltaTable("Top symbol shrink", shrunk)
+		}
+	}
+
+	logLine(Info, "Run OK")
 	return nil
 }
 
@@ -181,4 +232,11 @@ func safeName(s string) string {
 	s = strings.ReplaceAll(s, " ", "_")
 	s = strings.ReplaceAll(s, "/", "_")
 	return s
+}
+
+func abs64(v int64) int64 {
+	if v < 0 {
+		return -v
+	}
+	return v
 }

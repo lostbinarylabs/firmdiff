@@ -17,8 +17,9 @@ func NewDoctorCmd() *cobra.Command {
 	var verbose bool
 
 	cmd := &cobra.Command{
-		Use:   "doctor",
-		Short: "Check firmdiff dependencies and environment",
+		Use:     "doctor",
+		Short:   "Check firmdiff dependencies and environment",
+		GroupID: "utility",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runDoctor(verbose)
 		},
