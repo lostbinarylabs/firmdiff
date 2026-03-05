@@ -18,4 +18,4 @@ Coming soon.
 
 ### Go install
 ```bash
-go install github.com/<YOUR_ORG>/firmdiff/cmd/firmdiff@latest
+go install github.com/lostbinarylabs/firmdiff/cmd/firmdiff@latest
