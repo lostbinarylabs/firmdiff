@@ -75,7 +75,12 @@ func NewRunCmd() *cobra.Command {
 }
 
 func run(f runFlags) error {
-	// Create a working dir
+	srcAbs, err := filepath.Abs(f.Src)
+	if err != nil {
+		return fmt.Errorf("resolve src path: %w", err)
+	}
+	f.Src = srcAbs
+
 	base := filepath.Join(".firmdiff", "runs", safeName(f.Name))
 	outA := filepath.Join(base, "A")
 	outB := filepath.Join(base, "B")
@@ -87,7 +92,7 @@ func run(f runFlags) error {
 		return err
 	}
 
-	fmt.Printf("firmdiff run: %s\n", f.Name)
+	fmt.Printf("firmdiff run: %q\n", f.Name)
 	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 	fmt.Printf("  src: %s\n", f.Src)
 	fmt.Printf("  out: %s\n\n", base)
@@ -214,7 +219,9 @@ func runCmd(bin string, args []string, workdir string, extraEnv []string) error 
 	cmd := exec.Command(bin, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Dir = workdir
+	if workdir != "" {
+		cmd.Dir = workdir
+	}
 
 	// Merge environment
 	env := os.Environ()
