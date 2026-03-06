@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -84,6 +85,14 @@ func run(f runFlags) error {
 	base := filepath.Join(".firmdiff", "runs", safeName(f.Name))
 	outA := filepath.Join(base, "A")
 	outB := filepath.Join(base, "B")
+
+	gen, err := detectGenerator(f.Generator)
+	if err != nil {
+		return err
+	}
+
+	f.Generator = gen
+	logLine(Info, "Using CMake generator: %s", gen)
 
 	if err := os.MkdirAll(outA, 0o755); err != nil {
 		return err
@@ -246,4 +255,31 @@ func abs64(v int64) int64 {
 		return -v
 	}
 	return v
+}
+
+func detectGenerator(requested string) (string, error) {
+
+	// If user explicitly asked for one, use it
+	if requested != "" {
+		return requested, nil
+	}
+
+	// Prefer Ninja (fastest)
+	if _, err := exec.LookPath("ninja"); err == nil {
+		return "Ninja", nil
+	}
+
+	// Fallback to Make
+	if _, err := exec.LookPath("make"); err == nil {
+		return "Unix Makefiles", nil
+	}
+
+	// Windows fallback
+	if runtime.GOOS == "windows" {
+		if _, err := exec.LookPath("nmake"); err == nil {
+			return "NMake Makefiles", nil
+		}
+	}
+
+	return "", fmt.Errorf("no supported build tool found (install ninja or make)")
 }
