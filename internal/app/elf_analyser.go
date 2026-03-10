@@ -92,7 +92,7 @@ func extractTopSymbols(f *elf.File, topN int) []SymbolInfo {
 		all = append(all, dsyms...)
 	}
 
-	// Deduplicate by name, keep largest size
+	// Deduplicate by name, keep the largest size
 	seen := make(map[string]int64, len(all))
 	for _, s := range all {
 		name := strings.TrimSpace(s.Name)
