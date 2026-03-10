@@ -86,14 +86,6 @@ func run(f runFlags) error {
 	outA := filepath.Join(base, "A")
 	outB := filepath.Join(base, "B")
 
-	gen, err := detectGenerator(f.Generator)
-	if err != nil {
-		return err
-	}
-
-	f.Generator = gen
-	logLine(Info, "Using CMake generator: %s", gen)
-
 	if err := os.MkdirAll(outA, 0o755); err != nil {
 		return err
 	}
@@ -105,6 +97,14 @@ func run(f runFlags) error {
 	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 	fmt.Printf("  src: %s\n", f.Src)
 	fmt.Printf("  out: %s\n\n", base)
+
+	gen, err := detectGenerator(f.Generator)
+	if err != nil {
+		return err
+	}
+
+	f.Generator = gen
+	logLine(Info, "Using CMake generator: %s", gen)
 
 	// Build A
 	if err := cmakeConfigureBuild(f, outA, "A", f.ACFlags, f.ACXXFlags, f.ALDFlags, f.EnvA); err != nil {
@@ -259,7 +259,7 @@ func abs64(v int64) int64 {
 
 func detectGenerator(requested string) (string, error) {
 
-	// If user explicitly asked for one, use it
+	// If the user explicitly asked for one, use it
 	if requested != "" {
 		return requested, nil
 	}
