@@ -15,7 +15,7 @@ func NewExplainCmd() *cobra.Command {
 		Short:   "Explain why firmware size changed",
 		GroupID: "core",
 		Args:    cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			return runExplain(args[0], args[1], top)
 		},
 	}
