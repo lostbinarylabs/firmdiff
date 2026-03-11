@@ -14,6 +14,7 @@ var (
 	BuildDate = "unknown"
 )
 
+// NewRootCmd returns the root command for the CLI application.
 func NewRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "firmdiff",
@@ -48,6 +49,7 @@ func NewRootCmd() *cobra.Command {
 
 var ErrThreshold = errors.New("threshold exceeded")
 
+// ExitCode returns the exit code for the given error.
 func ExitCode(err error) int {
 	if err == nil {
 		return 0
@@ -58,6 +60,7 @@ func ExitCode(err error) int {
 	return 1
 }
 
+// Execute runs the root command of the CLI application and handles any errors by printing them to stderr.
 func Execute() error {
 	if err := NewRootCmd().Execute(); err != nil {
 		// cobra already formats usage; we keep errors clean
