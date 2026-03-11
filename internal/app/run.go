@@ -37,6 +37,7 @@ type runFlags struct {
 	MaxRamDelta   int
 }
 
+// NewRunCmd returns the run command for building and comparing two variants.
 func NewRunCmd() *cobra.Command {
 	var f runFlags
 
@@ -44,7 +45,7 @@ func NewRunCmd() *cobra.Command {
 		Use:     "run",
 		Short:   "Build variant A, build variant B, compare them, and print results",
 		GroupID: "core",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return run(f)
 		},
 	}
