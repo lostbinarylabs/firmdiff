@@ -4,6 +4,7 @@ import (
 	"sort"
 )
 
+// SymDelta represents the difference in size between two symbols.
 type SymDelta struct {
 	Name  string
 	A     int64
@@ -11,6 +12,8 @@ type SymDelta struct {
 	Delta int64 // B - A
 }
 
+// DiffSymbols returns the biggest symbol size increases and decreases
+// between A and B, limited to topN results per group.
 func DiffSymbols(a, b []SymbolInfo, topN int) (grown []SymDelta, shrunk []SymDelta) {
 	am := make(map[string]int64, len(a))
 	bm := make(map[string]int64, len(b))
