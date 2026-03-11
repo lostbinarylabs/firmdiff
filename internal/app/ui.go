@@ -7,6 +7,7 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
+// Level represents the severity or importance of a log message.
 type Level int
 
 const (
