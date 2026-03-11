@@ -13,6 +13,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewDoctorCmd returns the doctor command for checking the local
+// firmdiff setup and dependencies.
 func NewDoctorCmd() *cobra.Command {
 	var verbose bool
 
@@ -20,7 +22,7 @@ func NewDoctorCmd() *cobra.Command {
 		Use:     "doctor",
 		Short:   "Check firmdiff dependencies and environment",
 		GroupID: "utility",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return runDoctor(verbose)
 		},
 	}
@@ -97,6 +99,7 @@ func findFirstInPath(candidates []string) (path string, chosen string, err error
 
 // ---- Binary format detection helpers (used by run.go) ----
 
+// BinaryFormat represents the format of a binary file.
 type BinaryFormat string
 
 const (
