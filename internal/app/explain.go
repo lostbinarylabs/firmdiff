@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewExplainCmd returns the explain command for comparing two ELF files.
 func NewExplainCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
@@ -13,7 +14,7 @@ func NewExplainCmd() *cobra.Command {
 		Short:   "Explain why firmware size changed",
 		GroupID: "core",
 		Args:    cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 
 			aPath := args[0]
 			bPath := args[1]
