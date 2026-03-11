@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// SizeInfo represents the size of an ELF file.
 type SizeInfo struct {
 	Flash int64 // approx: allocated + !write sections (SHT_NOBITS excluded)
 	Ram   int64 // approx: allocated + writable + NOBITS (bss)
@@ -15,22 +16,27 @@ type SizeInfo struct {
 	Bss   int64
 }
 
+// SymbolInfo represents information about a symbol, including its name and size.
 type SymbolInfo struct {
 	Name string
 	Size int64
 }
 
+// AnalyzeResult represents the result of analyzing an ELF file.
 type AnalyzeResult struct {
 	Size    SizeInfo
 	TopSyms []SymbolInfo // largest symbols (best-effort)
 }
 
+// AnalyzeELF analyzes an ELF file at the given path and returns its size and top symbols.
 func AnalyzeELF(path string, topN int) (AnalyzeResult, error) {
 	f, err := elf.Open(path)
 	if err != nil {
 		return AnalyzeResult{}, err
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	size := computeSizeFromELF(f)
 	syms := extractTopSymbols(f, topN)
