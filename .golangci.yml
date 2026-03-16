@@ -1,12 +1,84 @@
+version: "2"
 run:
-  timeout: 5m
-
+  tests: false
 linters:
   enable:
-    - govet
+    - cyclop
+    - dupl
+    - godot
+    - godox
+    - gosec
+    - inamedparam
+    - lll
+    - nakedret
+    - nestif
+    - nilerr
+    - nlreturn
     - revive
-    - errcheck
     - staticcheck
-
+    - unparam
+    - varnamelen
+    - whitespace
+    - wsl_v5
+  settings:
+    lll:
+      line-length: 160
+    nakedret:
+      max-func-lines: 10
+    revive:
+      severity: warning
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: error-return
+        - name: error-strings
+        - name: exported
+        - name: increment-decrement
+        - name: var-declaration
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: unexported-return
+        - name: indent-error-flow
+        - name: errorf
+        - name: empty-block
+        - name: superfluous-else
+        - name: unused-parameter
+        - name: unreachable-code
+        - name: redefines-builtin-id
+    staticcheck:
+      checks:
+        - all
+        - -ST1003
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - '*'
+        path: (.+)_test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
